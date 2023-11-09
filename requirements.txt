@@ -3,3 +3,4 @@ scikit-learn
 python-dateutil
 fastapi
 uvicorn[standard]
+bs4
