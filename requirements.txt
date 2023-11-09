@@ -1,6 +1,4 @@
-flask
 python-whois
-python-googlesearch
 scikit-learn
 python-dateutil
 fastapi
