@@ -27,7 +27,7 @@ class PhishingChecker:
         try:
             domain_response = whois.whois(self.domain)
             if domain_response is not None:
-                return "https" in domain_response.registrar.lower()  # Example - using registrar's information
+                return "https" in domain_response.registrar.lower()
         except:
             return False
 
@@ -132,42 +132,30 @@ class PhishingChecker:
             return -1
 
     def requestURL(self):
-        soup = BeautifulSoup(self.response.text, 'html.parser')
         try:
-            for img in soup.find_all('img', src=True):
-                dots = [x.start(0) for x in re.finditer('\.', img['src'])]
-                if self.url in img['src'] or self.domain in img['src'] or len(dots) == 1:
-                    success = success + 1
-                i = i + 1
+            soup = BeautifulSoup(self.response.text, 'html.parser')
+            success = 0
+            i = 0
 
-            for audio in soup.find_all('audio', src=True):
-                dots = [x.start(0) for x in re.finditer('\.', audio['src'])]
-                if self.url in audio['src'] or self.domain in audio['src'] or len(dots) == 1:
-                    success = success + 1
-                i = i + 1
-            for embed in soup.find_all('embed', src=True):
-                dots = [x.start(0) for x in re.finditer('\.', embed['src'])]
-                if self.url in embed['src'] or self.domain in embed['src'] or len(dots) == 1:
-                    success = success + 1
-                i = i + 1
-
-            for iframe in soup.find_all('iframe', src=True):
-                dots = [x.start(0) for x in re.finditer('\.', iframe['src'])]
-                if self.url in iframe['src'] or self.domain in iframe['src'] or len(dots) == 1:
-                    success = success + 1
-                i = i + 1
+            for tag in ['img', 'audio', 'embed', 'iframe']:
+                for item in soup.find_all(tag, src=True):
+                    dots = item['src'].count('.')
+                    if self.url in item['src'] or self.domain in item['src'] or dots == 1:
+                        success += 1
+                    i += 1
 
             try:
                 percentage = success / float(i) * 100
                 if percentage < 22.0:
                     return 1
-                elif ((percentage >= 22.0) and (percentage < 61.0)):
+                elif 22.0 <= percentage < 61.0:
                     return 0
                 else:
                     return -1
-            except:
+            except ZeroDivisionError:
                 return 0
-        except:
+        except Exception as e:
+            print(f"Error in requestURL method: {e}")
             return -1
 
     def anchorURL(self):
@@ -412,7 +400,6 @@ app.add_middleware(
 
 @app.get("/predict")
 def predict_model(url: str):
-
     response = requests.get(url, allow_redirects=True)
     url = response.url
     domain=urlparse(url).netloc
